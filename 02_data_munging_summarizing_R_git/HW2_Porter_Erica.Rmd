@@ -1,0 +1,414 @@
+---
+title: "HW2_Porter_Erica"
+author: "Erica Porter"
+date: "9/6/2017"
+output:
+  pdf_document: default
+  html_document: default
+geometry: margin=0.75in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\begin{Large}
+\textbf{Problem 4}
+\end{Large} \
+Using version control will allow me to:
+\begin{itemize}
+\item Test code by using branching processes; I can backtrack to a working version if I have to abandon a portion of code
+\item Edit, modify, and copy pieces of code from other projects
+\item Compare my methods and the efficiency of my projects with those of classmates'
+\item Access projects and code when away from my personal computer, if necessary
+\end{itemize}
+\begin{Large}
+\textbf{Problem 5}
+\end{Large} \
+\begin{itemize}
+\item[a.] The sensory data has formatting issues including:
+\begin{itemize}
+\item[-] The Item number is only listed for the first row of corresponding values;two thirds of the data are missing Item numbers.
+\item[-] The label "Operator" above the data set is extraneous since it is not a header with variable names; it may interfere with reading the data in neatly.
+\item[-] The values and operators span multiple columns; each variable needs to correspond to a separate column and each measurement to a single row, so the columns need to correspond separately to: Operator, value, and Item.
+\begin{itemize}
+\item See Appendix for R code with comments about the data cleaning process.
+\item Table 1 displays a summary of the Sensory data after cleaning/tidying the data.
+\end{itemize}
+\end{itemize}
+\item[b.] The long jump data has formatting issues including:
+\begin{itemize}
+\item[-] Values for Year span multiple columns.
+\item[-] Values for Long Jump span multiple columns.
+\begin{itemize}
+\item See Appendix for R code with comments about the data cleaning process.
+\item Table 2 displays a summary of the Long Jump data after cleaning/tidying the data.
+\end{itemize}
+\end{itemize}
+\item[c.] The Body/Brain Weight data has formatting issues including:
+\begin{itemize}
+\item[-] Values for Body Weight span multiple columns.
+\item[-] Values for Brain Weight span multiple columns.
+\item[-] Headings and values do not clearly align for each column.
+\begin{itemize}
+\item See Appendix for R code with comments about the data cleaning process.
+\item Table 3 displays a summary of the Body/Brain Weight data after cleaning/tidying the data.
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+```{r, echo=FALSE}
+
+### Sensory data
+library(tidyr,quietly=T,warn.conflicts=F)
+library(dplyr,quietly=T,warn.conflicts=F)
+url <- "http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/Sensory.dat"
+sensory <- read.table(url, header = F, skip = 1, fill = T, stringsAsFactors = F)
+sensory_new <- sensory[-1,]
+Items <- rep(1:10,each = 3)
+sensory_new <- cbind(sensory_new,Items)
+n = ncol(sensory_new)
+for(i in 1:30) {if ((sensory_new[i,1] != sensory_new[i,n]) == TRUE) {sensory_new[i,1:6] <- c("NA",sensory_new[i,1:5])}}
+sensory_new <- sensory_new[,-1]
+colnames(sensory_new) <- c("Op1","Op2","Op3","Op4","Op5","Item")
+sensory_tidy <- sensory_new %>% gather(Operator,value,Op1:Op5) %>% mutate(Operator = gsub("Op", "", 
+Operator))
+sensory_tidy <- sensory_tidy %>% mutate(value = as.numeric(value))
+knitr::kable(summary(sensory_tidy), caption="Sensory data summary")
+
+### Long Jump data
+library(tidyr,quietly=T,warn.conflicts=F)
+library(dplyr,quietly=T,warn.conflicts=F)
+library(stringr,quietly=T,warn.conflicts=F)
+url <- "http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/LongJumpData.dat"
+jump <- read.table(url, header = F, skip = 1, fill = T)
+jump_new <- jump
+n=ncol(jump_new)
+m = nrow(jump_new)
+even_indexes<-seq(2,n,2)
+odd_indexes<-seq(1,n,2)
+year <- data.frame(x=jump_new[1:m,odd_indexes])
+jumps <- data.frame(y=jump_new[1:m,even_indexes])
+jump_full <- cbind(stack(year[1:4]),stack(jumps[1:4]))
+jump_full <- jump_full[,c(1,3)]
+jump_full <- na.omit(jump_full)
+colnames(jump_full) <- c("Year","Long Jump")
+knitr::kable(summary(jump_full), caption="Long Jump data summary")
+
+### Weight data
+library(tidyr,quietly=T,warn.conflicts=F)
+library(dplyr,quietly=T,warn.conflicts=F)
+library(stringr,quietly=T,warn.conflicts=F)
+url <- "http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/BrainandBodyWeight.dat"
+weight <- read.table(url, header = F, skip = 1, fill = T)
+weightnew <- weight
+colnames(weightnew) <- c("Body_1", "Brain_1", "Body_2", "Brain_2", "Body_3", "Brain_3")
+Body <- data.frame(a = c(weightnew[,"Body_1"], weightnew[,"Body_2"], weightnew[,"Body_3"]))
+Brain <- data.frame(b = c(weightnew[,"Brain_1"], weightnew[,"Brain_2"], weightnew[,"Brain_3"]))
+weight2 <- cbind(Body,Brain)
+weight2 <- na.omit(weight2)
+colnames(weight2) <- c("Body Wt","Brain Wt")
+knitr::kable(summary(weight2), caption="Body & Brain Weight data summary")
+```
+
+
+\begin{Large}
+\textbf{Problem 6}
+\end{Large} \
+To clean the plant data, I did the following:
+\begin{itemize}
+\item Saved the plant data as a text file and read the data in as a table.
+\item Removed the first unnecessary row.
+\item Assigned to the data more descriptive and clear column headings.
+\item Removed rows consisting of all NA values.
+\end{itemize}
+After cleaning the data, I converted the variable Foliage_Color to a numeric variable in order to test for a linear relationship between Foliage_Color and the pH values.  First, I fit a simple model for Foliage_Color with pH_Max and pH_Min, but the coefficients in the model were not significant.  See Table 4 and Table 5 for a summary of the fit and ANOVA of the fit, respectively.  Next, I attempted the repeated the model, this time taking the logarithm of each variable; the coefficient for pH_Min was not significant, so I fit my final linear model with only log(Foliage_Color) and log(pH_Max).  While I did not attempt every possible model, transformation, or combination of variables, the model that included only log(pH_Min) was most significant.  See Table 6 and Table 7 for a sumary of the fit and ANOVA of this fit, respectively.
+
+See the Appendix for the corresponding R code (data cleaning and model fits).
+```{r, echo=FALSE}
+plants <- read.table(file="~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/02_data_munging_summarizing_R_git/PLantsdata",header=T,sep=",")
+.cols2rm <- c('X')
+plants <- plants[,!(names(plants) %in% .cols2rm)]
+names(plants) <- c('Scientific_Name', 'Duration', 'Active_Growth_Period',
+                   'Foliage_Color', 'pH_Min', 'pH_Max',
+                   'Precip_Min', 'Precip_Max',
+                   'Shade_Tolerance', 'Temp_Min_F')
+
+sel <- apply(plants, 1, function(x) sum(is.na(x))>=1 )
+plants_trim <- plants[!(sel),]
+plants_trim$Color.factor <- as.numeric(factor(plants_trim$Foliage_Color,levels=c("Dark Green","Gray-Green","Green","Red","White-Gray","Yellow-Green")))
+plants_trim2 <- plants_trim
+plants_trim2$Foliage_Color <- plants_trim$Color.factor
+
+fit=lm(Foliage_Color~pH_Min+pH_Max,data=plants_trim2)
+fit2=lm(Foliage_Color~pH_Min,data=plants_trim2)
+
+fit3=lm(Foliage_Color~pH_Max,data=plants_trim2)
+
+fit4=lm(log(Foliage_Color)~log(pH_Max)+log(pH_Min),data=plants_trim2)
+
+fit5=lm(log(Foliage_Color)~log(pH_Max),data=plants_trim2)
+
+```
+\begin{table}[!htbp] \centering 
+  \caption{Summary of fit with pHMax and pHMin}
+  \label{}
+\begin{tabular}{@{\extracolsep{5pt}}lc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-2} 
+\\[-1.8ex] & Foliage\_Color \\ 
+\hline \\[-1.8ex] 
+ pH\_Min & 0.025 (0.046) \\ 
+  pH\_Max & 0.033 (0.045) \\ 
+  Constant & 2.501$^{***}$ (0.341) \\ 
+ \hline \\[-1.8ex] 
+Observations & 813 \\ 
+R$^{2}$ & 0.001 \\ 
+Adjusted R$^{2}$ & $-$0.001 \\ 
+Residual Std. Error & 0.829 (df = 810) \\ 
+F Statistic & 0.595 (df = 2; 810) \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
+
+\begin{table}[!htbp] \centering 
+  \caption{Summary of ANOVA for fit with pHMax and pHMin} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
+\hline \\[-1.8ex] 
+Df & 3 & 270.667 & 467.076 & 1 & 810 \\ 
+Sum Sq & 3 & 185.639 & 320.829 & 0.365 & 556.101 \\ 
+Mean Sq & 3 & 0.501 & 0.166 & 0.365 & 0.687 \\ 
+F value & 2 & 0.595 & 0.090 & 0.531 & 0.658 \\ 
+Pr(\textgreater F) & 2 & 0.442 & 0.035 & 0.417 & 0.466 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table} 
+
+\begin{table}[!htbp] \centering 
+  \caption{Summary of fit log(y) with log(pHMax)} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-2} 
+\\[-1.8ex] & log(Foliage\_Color) \\ 
+\hline \\[-1.8ex] 
+ log(pH\_Max) & 0.302$^{**}$ (0.137) \\ 
+  Constant & 0.400 (0.274) \\ 
+ \hline \\[-1.8ex] 
+Observations & 813 \\ 
+R$^{2}$ & 0.006 \\ 
+Adjusted R$^{2}$ & 0.005 \\ 
+Residual Std. Error & 0.362 (df = 811) \\ 
+F Statistic & 4.814$^{**}$ (df = 1; 811) \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
+
+\begin{table}[!htbp] \centering 
+  \caption{ANOVA of fit log(y) with log(pHMax)} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
+\hline \\[-1.8ex] 
+Df & 2 & 406.000 & 572.756 & 1 & 811 \\ 
+Sum Sq & 2 & 53.576 & 74.874 & 0.632 & 106.519 \\ 
+Mean Sq & 2 & 0.382 & 0.354 & 0.131 & 0.632 \\ 
+F value & 1 & 4.814 &  & 4.814 & 4.814 \\ 
+Pr(\textgreater F) & 1 & 0.029 &  & 0.029 & 0.029 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table}
+\newpage
+
+\begin{large}
+\textbf{Problem 7}
+\end{large}
+\begin{itemize}
+\item[a.] Loaded all three data sets into R by saving each as a .csv file in RStudio.
+\item[b.] I used the $\texttt{merge}$ function to merge data sets Personenauto\_basisdata and Open\_Data\_RDW\_Geconstateerde\_Gebreken by (what I think is) license plate.  Then, I merged this new data set with Open\_Data\_RDW\_Gebreken.  
+\item[c.] After merging and organizing the data, I used a function to convert the first date column to character values and remove all except the final 2 digits (indicating year).  If month or day were necessary for the subsequent analysis, I would have to use date conversions, but seeing as the original dates were given in a variety of different formats (mm/dd/yyyy, mm/dd/yy, and character text with no recognized date format), I was not able to convert all the dates to an identical format in the given time.  Since the analysis asked only that we look at the year 2017, the last two digits indicating year were sufficient.
+\item[d.] 71 unique car makes and 2746 unique car models for the year 2017.  I found these values first by using the $\texttt{aggregate}$ command to create a table of unique values for every year, and then by creating a subset of the data with only rows corresponding to 2017 and applying $\texttt{length}$ and $\texttt{unique}$ commands.
+\end{itemize}
+```{r,echo=FALSE}
+dat1 <- read.csv("~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/02_data_munging_summarizing_R_git/Personenauto_basisdata.csv")
+dat2 <- read.csv(file="~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/02_data_munging_summarizing_R_git/Open_Data_RDW__Gebreken.csv")
+dat3 <- read.csv(file="~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/02_data_munging_summarizing_R_git/Open_Data_RDW__Geconstateerde_Gebreken.csv")
+plates <- merge(dat1,dat3,by="Kenteken")
+defects <- merge(plates,dat2,by="Gebrek.identificatie")
+substrRight <- function(x, n){substr(x, nchar(x)-n, nchar(x))}
+defects$Datum.tenaamstelling <- as.character(defects$Datum.tenaamstelling)
+defects$Datum.tenaamstelling <- substrRight(defects$Datum.tenaamstelling,1)
+unique_makes <- aggregate(Merk ~ defects$'Datum.tenaamstelling', defects, function(x) length(unique(x)))
+ # year 2017 has 71 unique makes
+unique_models <- aggregate(Handelsbenaming ~ defects$'Datum.tenaamstelling', defects, function(x) length(unique(x)))
+ # year 2017 has 2746 unique models
+  
+# below I create a smaller data set with only 2017 data
+defect17 <- defects[which(defects$`Datum.tenaamstelling` == '17'),]
+ # Can re-dp unique counts from subset data; get same results (71 and 2746)
+length(unique(defect17$Merk))
+length(unique(defect17$Handelsbenaming))
+
+ # Most common 2017 defects (by ID number)
+sort(table(defect17$`Gebrek.identificatie`),decreasing=TRUE)[1:5]
+
+```
+
+\begin{large}
+\textbf{Appendix: R Code and comments}
+\end{large}
+```{r, echo=TRUE}
+### Sensory data
+library(tidyr,quietly=T,warn.conflicts=F)
+library(dplyr,quietly=T,warn.conflicts=F)
+# Read data into R, removing the first row with unecessary information
+url <- "http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/Sensory.dat"
+sensory <- read.table(url, header = F, skip = 1, fill = T, stringsAsFactors = F)
+sensory_new <- sensory[-1,]
+# The data only lists Item number for the first measurement, so create a new Item column
+Items <- rep(1:10,each = 3)
+sensory_new <- cbind(sensory_new,Items)
+n = ncol(sensory_new)
+# Call a function that shifts replicate measurements into the correct columns
+for(i in 1:30) {if ((sensory_new[i,1] != sensory_new[i,n]) == TRUE) {sensory_new[i,1:6] <-c("NA",sensory_new[i,1:5])}}
+sensory_new <- sensory_new[,-1]
+colnames(sensory_new) <- c("Op1","Op2","Op3","Op4","Op5","Item")
+# Make the Operator variable into a column and append to data
+sensory_tidy <- sensory_new %>% gather(Operator,value,Op1:Op5) %>% mutate(Operator = gsub("Op", "", 
+Operator))
+```
+
+```{r, echo=TRUE}
+### Long Jump data
+library(tidyr,quietly=T,warn.conflicts=F)
+library(dplyr,quietly=T,warn.conflicts=F)
+library(stringr,quietly=T,warn.conflicts=F)
+# Read data into R, remove heading since misaligned
+url <- "http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/LongJumpData.dat"
+jump <- read.table(url, header = F, skip = 1, fill = T)
+jump_new <- jump
+# Separate columns for year and jump into two data sets
+n=ncol(jump_new)
+m = nrow(jump_new)
+even_indexes<-seq(2,n,2)
+odd_indexes<-seq(1,n,2)
+year <- data.frame(x=jump_new[1:m,odd_indexes])
+jumps <- data.frame(y=jump_new[1:m,even_indexes])
+# List all years in one column and all jump measurements in one column
+jump_full <- cbind(stack(year[1:4]),stack(jumps[1:4]))
+jump_full <- jump_full[,c(1,3)]
+# Combine data and remove rows of NA
+jump_full <- na.omit(jump_full)
+colnames(jump_full) <- c("Year","Long Jump")
+```
+
+```{r, echo=TRUE}
+### Weight data
+library(tidyr,quietly=T,warn.conflicts=F)
+library(dplyr,quietly=T,warn.conflicts=F)
+library(stringr,quietly=T,warn.conflicts=F)
+# Read data into R, removing first line
+url <- "http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/BrainandBodyWeight.dat"
+weight <- read.table(url, header = F, skip = 1, fill = T)
+weightnew <- weight
+# Specify column names and group Body and Brain columns into two sets; stack the data
+colnames(weightnew) <- c("Body_1", "Brain_1", "Body_2", "Brain_2", "Body_3", "Brain_3")
+Body <- data.frame(a = c(weightnew[,"Body_1"], weightnew[,"Body_2"], weightnew[,"Body_3"]))
+Brain <- data.frame(b = c(weightnew[,"Brain_1"], weightnew[,"Brain_2"], weightnew[,"Brain_3"]))
+# Create tidy data set by pasting separate columns for Body weight and Brain weight
+weight2 <- cbind(Body,Brain)
+weight2 <- na.omit(weight2)
+colnames(weight2) <- c("Body Wt","Brain Wt")
+```
+
+```{r, echo=TRUE}
+### Tomato data
+ # url1 <- "http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/tomato.dat"
+ # tomato <- read.table(url1,header=F,skip=2,fill=T,comment.char="",na.strings=F)
+ # tomato_new <- tomato %>% 
+ # separate(V2,into=paste("C10000",1:3,sep="_"),sep=",", remove=T,extra="merge")
+ #   %>%
+ # separate(V3,into=paste("C20000",1:3,sep="_"), sep=",", remove=T,extra="merge")
+ #   %>%
+ # separate(V4,into=paste("C30000",1:3,sep="_"), sep=",", remove=T,extra="merge")
+ #   %>%
+ # mutate(C10000_3=gsub(",","",C10000_3)) %>%
+ # gather(Clone,value,,C10000_1:C30000_3) %>%
+ # mutate(Variety=V1, Clone=gsub("C","",Clone)) %>%
+ # mutate(Variety=gsub("\\\\#"," ",Variety)) %>%
+ # separate(Clone,into=c("Clone","Replicate")) %>%
+ # select(-V1,Variety,Clone,value) %>%
+ # arrange()
+```
+
+```{r, echo=TRUE}
+### Plant data (Problem 6)
+# Read data into R, remove unecessary columns, give descriptive variable names
+plants <- read.table(file="~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/02_data_munging_summarizing_R_git/PLantsdata",header=T,sep=",")
+.cols2rm <- c('X')
+plants <- plants[,!(names(plants) %in% .cols2rm)]
+names(plants) <- c('Scientific_Name', 'Duration', 'Active_Growth_Period',
+                   'Foliage_Color', 'pH_Min', 'pH_Max',
+                   'Precip_Min', 'Precip_Max',
+                   'Shade_Tolerance', 'Temp_Min_F')
+
+# Remove rows with excessive NA values
+sel <- apply(plants, 1, function(x) sum(is.na(x))>=1 )
+plants_trim <- plants[!(sel),]
+
+# Convert Foliage_Color to a numeric variable in order to test relationships
+plants_trim$Color.factor <- as.numeric(factor(plants_trim$Foliage_Color,levels=c("Dark Green","Gray-Green","Green","Red","White-Gray","Yellow-Green")))
+plants_trim2 <- plants_trim
+plants_trim2$Foliage_Color <- plants_trim$Color.factor
+
+# Fit Foliage_Color with pH_Min and pH_Max, drop variables and re-test fit
+fit=lm(Foliage_Color~pH_Min+pH_Max,data=plants_trim2)
+fit2=lm(Foliage_Color~pH_Min,data=plants_trim2)
+fit3=lm(Foliage_Color~pH_Max,data=plants_trim2)
+
+# Try linear fits with log of the variables
+fit4=lm(log(Foliage_Color)~log(pH_Max)+log(pH_Min),data=plants_trim2)
+fit5=lm(log(Foliage_Color)~log(pH_Max),data=plants_trim2)
+```
+
+```{r,echo=TRUE}
+### Car data
+# Read data sets into R and merge by variables they have in common
+dat1 <- read.csv("~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/02_data_munging_summarizing_R_git/Personenauto_basisdata.csv")
+dat2 <- read.csv(file="~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/02_data_munging_summarizing_R_git/Open_Data_RDW__Gebreken.csv")
+dat3 <- read.csv(file="~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/02_data_munging_summarizing_R_git/Open_Data_RDW__Geconstateerde_Gebreken.csv")
+plates <- merge(dat1,dat3,by="Kenteken")
+defects <- merge(plates,dat2,by="Gebrek.identificatie")
+
+# Attempt to handle dates; convert to character and remove all except ending yy element
+substrRight <- function(x, n){substr(x, nchar(x)-n, nchar(x))}
+defects$Datum.tenaamstelling <- as.character(defects$Datum.tenaamstelling)
+defects$Datum.tenaamstelling <- substrRight(defects$Datum.tenaamstelling,1)
+unique_makes <- aggregate(Merk ~ defects$'Datum.tenaamstelling', defects, function(x) length(unique(x)))
+      # year 2017 has 71 unique makes
+unique_models <- aggregate(Handelsbenaming ~ defects$'Datum.tenaamstelling', defects, function(x) length(unique(x)))
+      # year 2017 has 2746 unique models
+  
+# below I create a smaller data set with only 2017 data
+defect17 <- defects[which(defects$`Datum.tenaamstelling` == '17'),]
+ # Can re-do unique counts from subset data; get same results (71 and 2746)
+unique_make <- length(unique(defect17$Merk))
+unique_model <- length(unique(defect17$Handelsbenaming))
+
+ # Most common 2017 defects (by ID number)
+sort(table(defect17$`Gebrek.identificatie`),decreasing=TRUE)[1:5]
+```
