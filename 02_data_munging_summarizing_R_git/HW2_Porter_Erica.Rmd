@@ -74,7 +74,6 @@ colnames(sensory_new) <- c("Op1","Op2","Op3","Op4","Op5","Item")
 sensory_tidy <- sensory_new %>% gather(Operator,value,Op1:Op5) %>% mutate(Operator = gsub("Op", "", 
 Operator))
 sensory_tidy <- sensory_tidy %>% mutate(value = as.numeric(value))
-knitr::kable(summary(sensory_tidy), caption="Sensory data summary")
 
 ### Long Jump data
 library(tidyr,quietly=T,warn.conflicts=F)
@@ -140,8 +139,8 @@ plants_trim$Color.factor <- as.numeric(factor(plants_trim$Foliage_Color,levels=c
 plants_trim2 <- plants_trim
 plants_trim2$Foliage_Color <- plants_trim$Color.factor
 
-fit=lm(Foliage_Color~pH_Min+pH_Max,data=plants_trim2)
-fit2=lm(Foliage_Color~pH_Min,data=plants_trim2)
+fit = lm(Foliage_Color~pH_Min+pH_Max,data=plants_trim2)
+fit2 = lm(Foliage_Color~pH_Min,data=plants_trim2)
 
 fit3=lm(Foliage_Color~pH_Max,data=plants_trim2)
 
