@@ -1,0 +1,88 @@
+---
+title: "HW4_Porter_Erica"
+author: "Erica Porter"
+date: "9/23/2017"
+output: pdf_document
+geometry: margin=0.5in
+---
+
+```{r setup, include=FALSE}
+library(readxl)
+library(ggplot2)
+library(lattice)
+library(tidyverse)
+library(beeswarm)
+library(stargazer)
+library(data.table)
+library(lubridate)
+library(knitr)
+library(kableExtra)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Problem 3
+
+According to Roger Peng, some goals of EDA are to examine the data, identify/summarize data characteristics, and identify initial patterns.  EDA helps to eliminate initial analyses and efforts that likely won't work, in order to narrow down the collection of possible approaches; EDA certainly helps investogators to gauge which approaches are worthwhile to pursue.  Topics of interest during EDA can be: finding issues with the data, understanding its structure, determining variables of interest, and recognizing any evident relationships to investigate throughout the analysis.  However, inference and presentation are generally not the focus of Exploratory Data Analysis, as investigators will make progress on these during later stages of analysis.  EDA simply sets the stage for more in-depth hypothesis tests, presentation-worthy graphics, and complete explanations.
+
+A few key components of EDA include:
+\begin{itemize}
+\item Display comparisons; this makes hypotheses and graphics more valuable
+\item Show causality and structure
+\item Collect evidence and content
+\end{itemize}
+
+#Problem 4 & 5
+
+```{r Problem4_EDA, echo = F, eval = T}
+
+HW4_data_1 <- read_excel("~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/04_projecting_knowledge_plots/HW4_data.xlsx", sheet = "Day1")
+
+HW4_data_2 <- read_excel("~/Desktop/Fall_2017_Courses/Statistical_Programming/STAT_5014_homework/STAT_5014_homework/04_projecting_knowledge_plots/HW4_data.xlsx", sheet = "Day2")
+
+    minerals <- rbind(HW4_data_1, HW4_data_2)
+
+# Look at the 3 variables a little
+knitr::kable(head(minerals), caption = "First 5 Observations")
+knitr::kable(tail(minerals), caption = "Last 5 Observations")
+var_class <- sapply(minerals, class)
+blocks <- levels(as.factor(minerals$block))
+num_row <- nrow(minerals)
+num_col <- ncol(minerals)
+knitr::kable(summary(minerals), caption = "Summary of HW4 data")
+plot(minerals$depth,minerals$phosphate)
+```
+
+```{r data_summary, echo = F, eval = T}
+dev_data <- readRDS("./HW3_data.rds")
+
+sum_stats <- as.data.frame(matrix(NA,nrow=13,ncol=6))
+
+block_summary <- function(data,observers) {
+  temp <- c(mean(subset(data, Observer == observers)$dev1), mean(subset(data, Observer == observers)$dev2), sd(subset(data, Observer == observers)$dev1), sd(subset(data, Observer == observers)$dev2), cor(subset(data, Observer == observers)$dev1, subset(data, Observer == observers)$dev2))
+  return(c(observers,temp))
+}
+
+for(i in 1:13) {
+    sum_stats[i,] <- block_summary(data=dev_data,observers=i)
+}
+
+colnames(sum_stats) <- c("Block", "Mean1", "Mean2", "SD1", "SD2", "Correlation")
+
+knitr::kable(sum_stats, caption = "Summary of data by block")
+
+```
+
+```{r pairs, echo=F, eval=T, fig.height=8,fig.width=9}
+pairs(minerals)
+```
+\
+The two sheets of data have the same column names and types, so I combined their rows into one data frame called "minerals".  The data set has three variables: "block", "depth", and "phosphate."  The "block" variable is initially classified as numeric since it contains integers from 1 to 13, but it appears to be some sort of factor variable, perhaps specifying the areas in which depth and phosphate measurements were taken.
+
+The scatterplot of all data points with "depth" versus "phosphate" is not very clear, but there is no evident overall correlation between the two variables from this plot; there is not an overall trend.  The individual scatterplots of "depth" versus "phosphate" appear to demonstrate very different trends/shapes.  The data from block 4 plots in the shape of a dinosaur, and block 12 data plots in the shape of a star.  This grid of scatterplots by block is the most useful visual to me because it demonstrates that the data are not correlated and the data for the blocks is not distributed similaryl despite their similar summary statistics.  Since the data is not correlated, other plots would not improve analysis; individual boxplots would also demostrate the (misleading) similar correlations, and histograms may demonstrate the distributions, but since the data and realtionships are not real/significant, further models and analysis after that would be unproductive.
+
+\
+```{r scatter, echo = F, eval = T, fig.height=6,fig.width=9}
+xyplot(phosphate ~ depth | block, minerals, grid = TRUE)
+
+```
+
