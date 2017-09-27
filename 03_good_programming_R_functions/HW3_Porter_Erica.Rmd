@@ -74,13 +74,16 @@ sd1 <- c()
 sd2 <- c()
 corr <- c()
 
+frame <- as.data.frame(matrix(NA,nrow=13,ncol=6))
+
+dev <- function(data,observers) {
+  temp <- c(mean(subset(data, Observer == observers)$dev1), mean(subset(data, Observer == observers)$dev2), sd(subset(data, Observer == observers)$dev1), sd(subset(data, Observer == observers)$dev2), cor(subset(data, Observer == observers)$dev1, subset(data, Observer == observers)$dev2))
+  return(c(observers,temp))
+}
+
 # Loop through the data to evaluate mean, sd, and correlation for each of 13 observers #
 for(i in 1:13) {
-    mean1[i] <- mean(subset(dev_data, Observer == i)$dev1)
-    mean2[i] <- mean(subset(dev_data, Observer == i)$dev2)
-    sd1[i] <- sd(subset(dev_data, Observer == i)$dev1)
-    sd2[i] <- sd(subset(dev_data, Observer == i)$dev2)
-    corr[i] <- cor(subset(dev_data, Observer == i)$dev1, subset(dev_data, Observer == i)$dev2)
+    frame[i,] <- dev(data=dev_data,observers=i)
 }
 
 summary_stats <- cbind(mean1, mean2, sd1, sd2, corr)
