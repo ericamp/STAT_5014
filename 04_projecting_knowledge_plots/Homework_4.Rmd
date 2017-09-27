@@ -36,6 +36,7 @@ In the lecture, there were a few links to Exploratory Data Analysis (EDA) materi
 ## Problem 4
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 In this weeks folder, there is an Excel file containing the dataset for this problem: HW4_data.xlsx.  Read this into R (see below).  Make sure you get (and combine) BOTH sheets of data.  Work up a well annotated reproducible exploration of this dataset using the principles discussed in class or in the supplementary material.  Things you may consider:  
 
 1. summary statistics (combined in a table?)  
@@ -49,12 +50,20 @@ In this weeks folder, there is an Excel file containing the dataset for this pro
 
 ```{r echo=T, eval=F, include=T}
 >>>>>>> upstream/master
+=======
+In this weeks folder, there is an Excel file containing the dataset for this problem: HW4_data.xlsx.  Read this into R (see below).  Make sure you get (and combine) BOTH sheets of data.  Work up a well annotated reproducible exploration of this dataset using the principles discussed in class or in the supplementary material. 
+
+```{r echo=T, eval=F, include=T}
+>>>>>>> upstream/master
     library(xlsx)
     prob4_data1 <- read.xlsx("HW4_data.xlsx", sheetIndex = 1)
 ```
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> upstream/master
 Things you need to answer/show:  
 
 1. summary statistics (combined in a table?)  
@@ -67,6 +76,9 @@ Things you need to answer/show:
 
 NOTE: DO use this version and NOT the previous version, i.e. load using the xlsx package as above so the factors are correctly labeled.
 
+<<<<<<< HEAD
+>>>>>>> upstream/master
+=======
 >>>>>>> upstream/master
 
 ## Problem 5
@@ -74,7 +86,10 @@ NOTE: DO use this version and NOT the previous version, i.e. load using the xlsx
 For problem 4, is there a single most illuminating figure that shows a key component of the data??  This is the figure you should use as your first submission in next weeks contest.  Save it as a pdf and make sure it is ready for pushing at the start of class. (Torg 1100, try to be a little early)  What did this exercise show you?  
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> upstream/master
 ```{r eval=F, echo=T, include=T, results='asis', tidy=F}
 ######################################################
 ######################################################
@@ -85,6 +100,7 @@ For problem 4, is there a single most illuminating figure that shows a key compo
 ### We will have a more detailed plotting discussion
 ### and do the following 2 data sets next week
 ```
+<<<<<<< HEAD
 >>>>>>> upstream/master
 ## Problem 6
 
@@ -176,6 +192,8 @@ DO NOT push this homework until the next class!  Don't give your classmates any 
 ## Optional preperation for next class:  
 
 Next week we will talk about the apply family of functions.  Check out Swirl  "R_programming_E" Swirl lessons 10 and 11.
+=======
+>>>>>>> upstream/master
 
 
 
