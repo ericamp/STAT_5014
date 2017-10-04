@@ -1,0 +1,177 @@
+---
+title: "HW5_Porter_Erica"
+author: "Erica Porter"
+date: "9/30/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pander)
+library(downloader) 
+library(data.table)
+library(readxl)
+library(ggplot2)
+library(lattice)
+library(tidyverse)
+library(beeswarm)
+library(stargazer)
+library(data.table)
+library(lubridate)
+library(knitr)
+library(kableExtra)
+library(vioplot)
+
+```
+
+#Problem 3
+In my opinion, a good figure should display the desired insights in a clear manner, while also acknowledging data limitations and discrepancies; a figure/graphic should not lie or mislead audiences to believe something is in the data if it's not.  A figure should display all relevant and necessary comparisons without becoming so cumbersome that it can no longer be interpreted or viewed easily at one time.  The comparison aspect is key, of course; whether the audience is highly familiar with the background/study or not, it is important to either include multiple groups or references for comparison, or to provide some sort of scale.
+
+However, the guidelines for a good figure may change significantly for different audiences and data; a statistician who is familiar with a large number of graphs, charts, and maps would expect a different level of detail and clarity than a business leader wishing to make quick decisions from key progress indicators.  I also prefer figures with a (limited) number of colors, but many companies and individuals have brand guidelines and expectations that may restrict the plot packages and colors possible for use (and as Dr. Franck pointed out, some individuals are color-blind or color-confused, which definitely changes the circumstances).
+
+Figures of course need to use clear fonts, consistent labels, legends where appropriate, consistent and appropriate scales, and proper dimensions for displaying data.  While there are some very interesting and cool graphics, I think the graphic should always be chosen according to the scope, potential, and itent of the data.  A 3D line graph or layered bar graph is only interesting if it still conveys/summarizes the information as quickly and easily as possible.
+
+#Problem 4
+This function will vary significantly depending upon the contents of the vector and the criteria for success.  For example, if you are flipping a coin and obtaining Heads on a flip is considered a success, the criteria for success is certainly different than when determining the number of passing grades in a vector of exam grades.  For the purpose of this problem, I set a success to be a 1, so this function assumes that the user inputs a vector of 0's and 1's.
+
+```{r Problem4_proportions, echo = F, eval = T}
+successes = 0
+calc_prop <- function(x) {
+
+  for (i in 1:length(x)) {
+        if (x[i] == 1) {
+        successes = successes + 1}}
+  prop = successes/length(x)
+  
+  return(c(successes,prop))
+}
+# 1's are successes
+```
+
+```{r Problem4_flip, echo=F, include=T, eval=T}
+
+set.seed(12345)
+P4b_data <- matrix(rbinom(10, 1, prob = (30:40)/100), nrow = 10, ncol = 10)
+
+successes = 0
+calc_prop <- function(x) {
+ 
+  for (i in 1:length(x)) {
+        if (x[i] == 1) {
+        successes = successes + 1}}
+  prop = successes/length(x)
+  
+  return(prop)
+}
+
+# Then pass this function to apply
+
+# proportion of successes in P4b_data by column and by row
+
+apply(P4b_data, 2, calc_prop)  # by column
+apply(P4b_data, 1, calc_prop)  # by row
+```
+
+The problem with the matrix P4b_data is that every trial (column) is identical, so it seems that the \texttt{rbinom} did not actually use a different probability for each experiment.
+
+```{r Problem4_partD, echo = F, eval = T}
+# fix the above matrix 
+# create a function: input is a probability, output is a vector of 10 coin flip outcomes
+# Then create a vector of the desired probabilities 
+# Use apply to create the correct matrix
+# Prove this worked by using the function created in part a to compute and tabulate the appropriate marginal successes.
+
+flip <- function(p) {
+  
+    flip_vec <- sample(c(0,1), size = 10, replace = TRUE, prob = c(p, 1-p))
+    return(flip_vec)
+  }
+
+# vector of desired probabilities
+coin_prob <- (30:39)/100
+
+flip_matrix <- matrix(NA, nrow = 10, ncol = 10)
+
+#for (i in 1:10) {
+#  flip_matrix[i,] <- apply(flip_matrix, 2, flip, coin_prob[i])
+# }
+# matrix(apply(flip_matrix,2,flip(coin_prob)))
+
+# flip_matrix <- apply(flip_matrix, 2, flip)
+```
+
+#Problem 5
+```{r Problem5_starch, echo = F, eval = T}
+
+url <- "http://www2.isye.gatech.edu/~jeffwu/book/data/starch.dat"
+starch_data <- read.table(url, header = T, fill = T, stringsAsFactors = F)
+
+starch_stats <- as.data.frame(matrix(NA,nrow = 3,ncol = 5))
+
+summarize_starch <- function(data, category) {
+  temp <- c(mean(subset(data, starch == category)$strength), mean(subset(data, starch == category)$thickness), sd(subset(data, starch == category)$strength), sd(subset(data, starch == category)$thickness), cor((subset(data, starch == category)$strength), subset(data, starch == category)$thickness))
+  round(temp, digits = 3)
+  return(temp)
+}
+
+for(i in c("CA", "CO", "PO")) {
+    starch_stats[i,] <- summarize_starch(data = starch_data, category = i)
+}
+
+colnames(starch_stats) <- c("Mean Strength", "Mean Thickness", "SD Strength", "SD Thickness", "Correlation")
+
+starch_stats <- na.omit(starch_stats)
+
+knitr::kable(starch_stats, caption = "Summary by Starch")
+xyplot(strength ~ thickness | starch, starch_data, grid = TRUE)
+
+par(mfrow = c(1,3))
+vioplot(subset(starch_data, starch == "CA")$thickness, col = "gray")
+vioplot(subset(starch_data, starch == "CO")$thickness, col = "gray")
+vioplot(subset(starch_data, starch == "PO")$thickness, col = "gray")
+
+par(mfrow = c(1,3))
+vioplot(subset(starch_data, starch == "CA")$strength, col = "blue")
+vioplot(subset(starch_data, starch == "CO")$strength, col = "blue")
+vioplot(subset(starch_data, starch == "PO")$strength, col = "blue")
+
+
+
+```
+
+There appears to be a generally positive correlation between strength and thickness for each type of phosphate; however, each type of phosphate has a fairly different mean, standard deviation, and distribution.  "PO" tends to have higher thickness and strength, while "CO" had lower values for each, and the values are more tightly clustered for "CO".
+#Problem 6
+```{r Problem6_map, echo = F, eval = T}
+# download
+download("http://www.farinspace.com/wp-content/uploads/us_cities_and_states.zip",dest = "us_cities_states.zip") 
+unzip("us_cities_states.zip", exdir = "./")
+
+# read
+states <- fread(input = "./us_cities_and_states/states.sql",
+skip = 19, sep = "'", sep2 = ",", header = F, select = c(2, 4))
+
+city <- fread(input = "./us_cities_and_states/cities_extended.sql",
+skip = 19, sep = "'", sep2 = ",", header = F, select = c(2, 4))
+
+# number of cities by state
+city_tot <- as.data.frame(matrix(NA, nrow = 47))
+
+for (i in states$V4) {
+  city_tot_i <- which(i %in% city$V4)
+}
+
+ca <- which(city$V4 %in% "CA")
+length(unique(city$V2[ca]))
+
+table(city$V4)
+
+state_vec <- as.vector(unique(city$V4))
+city_table <- c()
+for(i in 1:52) {
+  city_table[i] <- length(subset(city$V2, city$V4 == state_vec[i]))
+}
+
+city_count <- cbind.data.frame(state_vec, city_table)
+knitr::kable(city_count, caption = "Count of unique city names")
+```
+
