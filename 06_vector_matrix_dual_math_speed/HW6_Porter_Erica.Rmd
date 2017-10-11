@@ -1,0 +1,78 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Problem 2
+```{r Problem2_sumsquares, echo = F, eval = T}
+
+# Sum of squares for loop
+set.seed(12345)
+y <- seq(from = 1, to = 100, length.out = 1e+08) + rnorm(1e+08)
+
+sum_sq = 0
+diff_sq <- vector()
+meany<-mean(y)
+system.time({for (i in 1:length(y)) {
+  diff_sq[i] <- (y[i] - meany)^2
+  sum_sq = sum_sq + diff_sq[i]
+}})
+
+
+# Sum of squares with matrices
+SSvec <- vector()
+
+system.time(SSvec <- sum((y-meany)^2))
+
+```
+
+```{r Problem3, echo = F, eval = T}
+set.seed(1256)
+theta <- as.matrix(c(1, 2), nrow = 2) 
+X <- cbind(1, rep(1:10, 10))
+h <- X %*% theta + rnorm(100, 0, 0.2)
+
+first_theta <- matrix(0, nrow = 2)
+alpha = 0.01
+tol = 10e-05
+m <- length(h)
+# i = 0
+# h_0 <- first_theta + theta * x
+# h is y
+# h0(x) = Θ0 + Θ1x
+# (abs(a-b) > t) & (abs(a-b)/(abs(a)+abs(b))) > t)
+for (i in 1:m) {
+while (abs(theta[2] - first_theta[2]) > tol && abs(theta[1] - first_theta[1]) > tol) {
+    
+    first_theta[1] <- theta[1] - (alpha * (1/m)) * sum(first_theta[1] + first_theta[2] * X[i,2] - h[i])
+    first_theta[2] <- theta[2] - (alpha * (1/m)) * sum((theta[1] + theta[2] * X[i,2] - h[i]) * X[i,2])
+    
+}}
+
+# Compare tp
+lm(h ~ 0 + X)
+```
+The result from the loop above is very close to lm(h ~ 0 + X)
+
+#Problem 4
+Inverting a matrix and then applying matrix multiplication takes a significant amount of time, so John Cook suggests that rather than using the $\texttt{solve}$ function to find the inverse of $X'X$ and then multiply by $X'y$, use the $\texttt{solve}$ function to directly solve for $\hat{\beta}$.  So, instead of $solve(X'X)$ multiplied by $X'y$, combine the $solve$ and multiplication into one step with $solve(X'X, X'y)$.  I'm not sure what is happening other than eliminating a matrix multiplication, but it seems that possible that R can use the factors/solutions already calculated from each x to somehow "backsubstitute" to solve for additional solutions.  I imagine it being a little like solving a system of individual linear equations.
+
+#Problem 5
+```{r Problem5, echo = F, eval = T}
+set.seed(12456)
+G <- matrix(sample(c(0, 0.5, 1), size = 16000, replace = T), ncol = 10)
+R <- cor(G) # R: 10 * 10 correlation matrix of G
+C <- kronecker(R, diag(1600)) # C is a 16000 * 16000 block diagonal matrix
+id <- sample(1:16000, size = 932, replace = F)
+q <- sample(c(0, 0.5, 1), size = 15068, replace = T) # vector of length 15068 
+A <- C[id, -id] # matrix of dimension 932 * 15068
+B <- C[-id, -id] # matrix of dimension 15068 * 15068
+p <- runif(932, 0, 1)
+r <- runif(15068, 0, 1)
+C <- NULL #save some memory space
+
+sizeA <- object.size(A)
+sizeB <- object.size(B)
+
+# y = p + A*B*(q − r)
+```
